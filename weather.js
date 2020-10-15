@@ -1,4 +1,5 @@
 const weather = document.querySelector(".js-weather");
+const weatherBtn = document.querySelector(".weatherBtn");
 
 const API_KEY = "ba4ee295402593ff38bcde1620813c6c"; //openweathermap서버에서 API를 가져온다
 const COORDS = "coords"
@@ -6,16 +7,18 @@ const COORDS = "coords"
 function getWeather(lat, lon) { //저장된 좌표로 날씨 get
     //따옴표""가 아닌 바틱``을 쓴다
     //JS가 새로고침없이 다른 사이트에서 데이터가져옴
-    /**
+    /** IE => polypill
      * .then() , 서버의 응답이 만약 1시간이 걸리면, 1시간동안 컴퓨터가 무엇을 할 것인가?
      * 서버의 응답시간 동안 다른일을 위해서 .then(); 다음 줄에 다른 함수가 있으면 응답이 완료될동안에 다음 줄의 
      * 코드들이 실행되고 응답이 완료되면 then()안에 콜백함수가 실행이 된다.
+     * 리턴값은 프로미스 객체: 콜백함수보다 가독성
      */
 
     // //fetch API방식
     // fetch( //Asynchronous : 비동기적인 실행(Ajax의 첫번째 글자) !== 동기적
     //     //원하는 사이트에서 가져온 API call링크를 fetch함수안에
     //     `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`,{
+
     //         method: 'GET'
     //     }
     // )
@@ -28,18 +31,18 @@ function getWeather(lat, lon) { //저장된 좌표로 날씨 get
     //      const temperature = json.main.temp;
     //      const place = json.name;
     //      weather.innerText = `${temperature}℃ ${place}`;
-    //  });
+    // });
 
 
     // //제이쿼리 방식
     // $.ajax({
     //     url: `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`,
     //     type: "get",
-    //     success: function (json) {
+    //     success: function (json) { //비동기처리를 위한 콜백함수
+    //         //console.log(json);
     //         const temperature = json.main.temp;
     //         const place = json.name;
     //         weather.innerText = `${temperature}℃ ${place}`;
-
     //     },
     //     error: function () {
     //         console.log("fail");
@@ -54,14 +57,19 @@ function getWeather(lat, lon) { //저장된 좌표로 날씨 get
         alert('XMLHTTP 인스턴스를 만들 수가 없어요 ㅠㅠ');
         return false;
     }
-    xhr.onreadystatechange = alertContents;
+    // 비동기 방식으로 Request를 오픈한다
     xhr.open('GET', `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`, true);
     xhr.send();//POST방식이면 서버로 보낼 데이터
-
-    function alertContents() { //요청에대한 응답처리
+    xhr.onreadystatechange = function () {
+        // readyStates는 XMLHttpRequest의 상태(state)를 반환
+        // readyState: 4 => DONE(서버 응답 완료)
+        //readyState값이 달라지면 콜백함수 호출
+         //요청에대한 응답처리
         if (xhr.readyState === XMLHttpRequest.DONE) { //서버로부터 모든 응답을 받았으며 이를 처리할 준비가 됨.
             if (xhr.status === 200) {
+                console.log(xhr.responseText);
                 let jsonResponse = JSON.parse(xhr.responseText);
+                console.log(jsonResponse);
                 const temperature = jsonResponse.main.temp;
                 const place = jsonResponse.name;
                 weather.innerText = `${temperature}℃ ${place}`;
@@ -71,6 +79,7 @@ function getWeather(lat, lon) { //저장된 좌표로 날씨 get
             }
         }
     }
+    //end of XMLHttpRequest
 
 }
 
@@ -118,6 +127,11 @@ function loadCoords() {
 }
 
 function init() {
-    loadCoords();
+    const delBtn = document.createElement("button");
+    delBtn.innerHTML = "현재 기온은?";
+    weatherBtn.appendChild(delBtn);
+
+    delBtn.addEventListener("click", loadCoords);
+
 }
 init();
